@@ -1,11 +1,12 @@
 import logging
+import asyncio
 from datetime import datetime, timezone
-import time
 import random
+import time
 
-from storage import load_products, save_price_record
-from scraper import WoolworthsScraper
-from parser import extract_price_data
+from old_supermarket_scraper.src.storage import load_products, save_price_record
+from old_supermarket_scraper.src.scraper import WoolworthsScraper
+from old_supermarket_scraper.src.parser import extract_price_data
 
 # Configure logging
 logging.basicConfig(
@@ -15,9 +16,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def run_scraper():
-    """Main orchestration function for the steak price scraper."""
-    logger.info("Starting Woolworths steak price scrape...")
+async def run_scraper():
+    """Main asynchronous orchestration function for the steak price scraper."""
+    logger.info("Starting Woolworths steak price scrape (Playwright mode)...")
 
     try:
         products = load_products()
@@ -26,6 +27,8 @@ def run_scraper():
         return
 
     scraper = WoolworthsScraper()
+    await scraper.start()
+
     timestamp = datetime.now(timezone.utc).isoformat() + "Z"
 
     try:
@@ -40,7 +43,7 @@ def run_scraper():
             logger.info(f"Fetching price for {name} ({stockcode})...")
 
             # Fetch data
-            details = scraper.fetch_product_details(stockcode)
+            details = await scraper.fetch_product_details(product)
             if not details:
                 logger.error(f"Could not retrieve details for {name}")
                 continue
@@ -64,12 +67,15 @@ def run_scraper():
             logger.info(f"Saved: {name} -> ${price} (Special: ${special_price})")
 
             # Polite delay between requests
-            time.sleep(random.uniform(1, 3))
+            await asyncio.sleep(random.uniform(1, 3))
 
     finally:
-        scraper.close()
+        await scraper.close()
 
     logger.info("Scrape completed successfully.")
 
 if __name__ == "__main__":
-    run_scraper()
+    try:
+        asyncio.run(run_scraper())
+    except KeyboardInterrupt:
+        pass
