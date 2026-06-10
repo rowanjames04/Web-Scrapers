@@ -6,10 +6,10 @@ soup = BeautifulSoup(page_to_scrape.text, "html.parser")
 
 #quotes
 quotes = soup.findAll("span", attrs = {"class": "text"})
-for quote in quotes:
-    print(quote.text)
 
 #authors
 authors = soup.findAll("small", attrs = {"class": "author"})
-for author in authors:
-    print(author.text)
+
+
+for quote, author in zip(quotes, authors):
+    print(quote.text + " - " + author.text)
