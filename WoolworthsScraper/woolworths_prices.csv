@@ -1,10 +1,10 @@
 item,name,price,was_price,on_special,unit_price,package_size,in_stock,stockcode,url
 Porterhouse Steak,Woolworths Beef Porterhouse Steak & Butter,18,18,False,$45.00 / 1KG,400g,True,243050,https://www.woolworths.com.au/shop/productdetails/243050/woolworths-beef-porterhouse-steak-butter
 Porterhouse Steak,Woolworths Beef Porterhouse Steak,9,9,False,$50.00 / 1KG,180g,True,317294,https://www.woolworths.com.au/shop/productdetails/317294/woolworths-beef-porterhouse-steak
-Porterhouse Steak,Macro Grass Fed Beef Porterhouse Steaks 2 Pack,24,24,False,$60.00 / 1KG,400g,True,285094,https://www.woolworths.com.au/shop/productdetails/285094/macro-grass-fed-beef-porterhouse-steaks-2-pack
+Porterhouse Steak,Macro Grass Fed Beef Porterhouse Steaks 2 Pack,20,24,True,$50.00 / 1KG,400g,True,285094,https://www.woolworths.com.au/shop/productdetails/285094/macro-grass-fed-beef-porterhouse-steaks-2-pack
 Porterhouse Steak,Woolworths Beef Porterhouse Steak Medium,,34.13,False,,290g - 750g,False,675650,https://www.woolworths.com.au/shop/productdetails/675650/woolworths-beef-porterhouse-steak-medium
 Porterhouse Steak,Woolworths Beef Porterhouse Steak Thick Cut,18,18,False,$60.00 / 1KG,300g,True,82225,https://www.woolworths.com.au/shop/productdetails/82225/woolworths-beef-porterhouse-steak-thick-cut
 Porterhouse Steak,Macro Grass Fed Beef Porterhouse Steak,16,16,False,$59.26 / 1KG,270g,True,6022452,https://www.woolworths.com.au/shop/productdetails/6022452/macro-grass-fed-beef-porterhouse-steak
-Porterhouse Steak,Macro Organic Beef Porterhouse Steak,17,17,False,$58.62 / 1KG,290g,True,399187,https://www.woolworths.com.au/shop/productdetails/399187/macro-organic-beef-porterhouse-steak
+Porterhouse Steak,Macro Organic Beef Porterhouse Steak,15,17,True,$51.72 / 1KG,290g,True,399187,https://www.woolworths.com.au/shop/productdetails/399187/macro-organic-beef-porterhouse-steak
 T-Bone Steak,Woolworths Beef T Bone Steak Medium,24.5,24.5,False,$35.00 / 1KG,250g - 700g,True,675651,https://www.woolworths.com.au/shop/productdetails/675651/woolworths-beef-t-bone-steak-medium
 T-Bone Steak,Woolworths Australian Beef T-Bone Bistecca Sharing Steak,50.4,50.4,False,$42.00 / 1KG,500g - 1.2kg,True,6024632,https://www.woolworths.com.au/shop/productdetails/6024632/woolworths-australian-beef-t-bone-bistecca-sharing-steak
