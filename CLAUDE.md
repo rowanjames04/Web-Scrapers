@@ -16,14 +16,15 @@ pip install requests beautifulsoup4
 
 ## Commands
 
-Every script resolves its input and output paths relative to the current working
-directory, so **always run them from inside their own folder** or the CSV lands in the
-wrong place:
+Every scraper resolves its input and output paths relative to the current working
+directory, so **always run one from inside its own folder** or the CSV lands in the wrong
+place. Dashboards live in `dashboards/` and read CSVs out of the scraper folders, so they
+resolve paths against their own file instead and can be run from anywhere:
 
 ```bash
 cd QuoteScraper && python3 QuoteScraper.py
 cd WoolworthsScraper && python3 WoolworthsScraper.py
-cd WoolworthsScraper && python3 dashboard.py
+python3 dashboards/woolworths/dashboard.py
 ```
 
 There is no test suite, linter or CI. Verification is manual: run the scraper and check
@@ -51,10 +52,13 @@ Two consequences of using that endpoint:
 
 ### WoolworthsScraper: the pipeline
 
-`WoolworthsScraper.py` → `woolworths_prices.csv` → `dashboard.py` → `dashboard.html`
+`WoolworthsScraper/WoolworthsScraper.py` → `WoolworthsScraper/woolworths_prices.csv` →
+`dashboards/woolworths/dashboard.py` → `dashboards/woolworths/dashboard.html`
 
-The CSV is the interface between the two stages. `dashboard.html` is **generated output** —
-edit `dashboard.py` and re-run it; never hand-edit the HTML.
+The CSV is the interface between the two stages, and the folder boundary keeps it that way:
+scraping and rendering stay separate, and a dashboard never reaches for the network.
+`dashboard.html` is **generated output** — edit `dashboard.py` and re-run it; never
+hand-edit the HTML.
 
 `ITEMS` at the top of `WoolworthsScraper.py` is the entire configuration surface; tracking a
 new product means adding one dict, no code changes. Each entry's `keywords` list is load-
@@ -64,7 +68,7 @@ and flattens hyphens so `"t bone"` catches both `T Bone Steak` and `T-Bone Biste
 
 Committed CSVs are intentional in both projects — they act as the last-known-good snapshot.
 
-### dashboard.py: the two things that will bite
+### dashboards/woolworths: the two things that will bite
 
 **Per-kilogram normalisation is the point of the dashboard.** Pack sizes span 180g to 1.2kg,
 so shelf prices are not comparable across products. `price_per_kg()` parses the site's own

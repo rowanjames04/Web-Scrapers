@@ -1,7 +1,11 @@
 """Build a standalone HTML dashboard from the scraped Woolworths prices.
 
-Reads woolworths_prices.csv (produced by WoolworthsScraper.py) and writes
-dashboard.html, which needs no server, no network and no dependencies.
+Reads WoolworthsScraper/woolworths_prices.csv (produced by WoolworthsScraper.py)
+and writes dashboard.html next to this file, which needs no server, no network
+and no dependencies.
+
+Unlike the scrapers, a dashboard reads a CSV that lives in another folder, so
+paths here resolve against this file rather than the working directory.
 """
 
 import csv
@@ -10,8 +14,11 @@ import html
 import os
 import re
 
-CSV_FILE = "woolworths_prices.csv"
-HTML_FILE = "dashboard.html"
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+
+CSV_FILE = os.path.join(REPO, "WoolworthsScraper", "woolworths_prices.csv")
+HTML_FILE = os.path.join(HERE, "dashboard.html")
 
 # Categorical colours, one per item label, as (light, dark).
 # Validated for colour-blind separation against both page surfaces.
@@ -547,7 +554,7 @@ TEMPLATE = """<title>Woolworths Steak Price Tracker</title>
 def main():
     rows = read_rows()
     if not rows:
-        print("No rows in " + CSV_FILE + " - run WoolworthsScraper.py first.")
+        print("No rows in " + os.path.relpath(CSV_FILE, REPO) + " - run WoolworthsScraper.py first.")
         return
 
     labels, products = prepare(rows)
@@ -593,7 +600,7 @@ def main():
     with open(HTML_FILE, "w") as file:
         file.write(page)
 
-    print("Wrote " + HTML_FILE + " (" + str(len(chartable)) + " products charted)")
+    print("Wrote " + os.path.basename(HTML_FILE) + " (" + str(len(chartable)) + " products charted)")
 
 
 if __name__ == "__main__":
