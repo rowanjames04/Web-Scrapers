@@ -26,7 +26,13 @@ of each column that scrapes only that source.
 
 Those buttons need [`serve.py`](serve.py), because **a page on `file://` cannot start a Python
 process**. It serves the same `dashboard.html` and exposes one endpoint that runs the scrapers
-and rebuilds the page:
+and rebuilds the page.
+
+**Double-click [`start-dashboard.command`](start-dashboard.command) in Finder** and it does the
+lot: starts the server and opens the page in your browser. Closing the Terminal window it opens,
+or pressing Ctrl-C in it, stops the server.
+
+Or from a terminal:
 
 ```bash
 python3 dashboards/headlines/serve.py
@@ -38,6 +44,14 @@ Opened straight from disk the page still renders in full — the buttons just ex
 instead of failing against an endpoint that was never there. **The server is optional and adds
 nothing to the page; the generated HTML stays self-contained either way.**
 
+The launcher is a macOS convenience — `.command` is the extension Finder treats as
+double-clickable. It is a plain shell script, so it runs from any terminal too. Two notes:
+
+- It needs its executable bit. That survives `git clone`, but **not** downloading the repo as a
+  zip; if you went that route, run `chmod +x start-dashboard.command` once.
+- Double-clicking it while it is already running won't start a second server or throw an error.
+  It says so and opens the page against the one already up.
+
 Four things worth knowing about the server:
 
 - It binds to `127.0.0.1`. The endpoint starts processes, so it has no business listening on
@@ -47,6 +61,8 @@ Four things worth knowing about the server:
   racing it for the same CSV.
 - If a scraper fails, the page is left alone rather than rebuilt from a half-written CSV, and the
   error comes back to the status line next to the button.
+- If `dashboard.html` isn't there yet, it builds one at startup rather than serving a 404, so a
+  fresh clone works on the first double-click.
 
 ## What it shows
 

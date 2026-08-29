@@ -12,8 +12,12 @@ to run instead. Nothing here is required to read the dashboard.
 Stdlib only:
 
     python3 dashboards/headlines/serve.py
+
+Pass --open to open the page in a browser once the socket is bound. That is what
+start-dashboard.command uses, so the whole thing is one double-click.
 """
 
+import errno
 import http.server
 import json
 import os
@@ -21,6 +25,7 @@ import subprocess
 import sys
 import threading
 import urllib.parse
+import webbrowser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
@@ -145,11 +150,36 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 def main():
-    server = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
+    open_browser = "--open" in sys.argv[1:]
     url = "http://{}:{}/".format(HOST, PORT)
+
+    # A launcher double-clicked on a fresh clone shouldn't land on a 404.
+    if not os.path.exists(HTML_FILE):
+        print("No dashboard.html yet, building one...")
+        ok, output = run_script(os.path.dirname(DASHBOARD), os.path.basename(DASHBOARD))
+        print("  " + (output.splitlines() or ["no output"])[-1])
+        if not ok:
+            print("\nCouldn't build the page. Run the scrapers first.")
+            return 1
+
+    try:
+        server = http.server.ThreadingHTTPServer((HOST, PORT), Handler)
+    except OSError as error:
+        if error.errno != errno.EADDRINUSE:
+            raise
+        # Double-clicking the launcher twice shouldn't produce a traceback.
+        print("Something is already serving " + url)
+        print("Opening that instead of starting a second server.")
+        if open_browser:
+            webbrowser.open(url)
+        return 0
 
     print("Headlines dashboard on " + url)
     print("Refresh buttons on the page will scrape and rebuild it. Ctrl-C to stop.\n")
+
+    if open_browser:
+        # The socket is bound already, so this request just waits to be served.
+        webbrowser.open(url)
 
     try:
         server.serve_forever()
@@ -157,6 +187,8 @@ def main():
         print("\nStopped.")
         server.server_close()
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

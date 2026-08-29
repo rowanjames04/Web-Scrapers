@@ -29,6 +29,7 @@ cd NewsComAuScraper && python3 NewsComAuScraper.py
 python3 dashboards/woolworths/dashboard.py
 python3 dashboards/headlines/dashboard.py
 python3 dashboards/headlines/serve.py     # optional, powers the refresh buttons
+open dashboards/headlines/start-dashboard.command   # or double-click it in Finder
 ```
 
 There is no test suite, linter or CI. Verification is manual: run the scraper and check
@@ -168,6 +169,11 @@ incidental:
   race for the same CSV.
 - A failed scraper returns before the rebuild, so the page is never regenerated from a
   half-written CSV.
+
+`start-dashboard.command` is a double-clickable Finder launcher that runs `serve.py --open`. It
+resolves its own folder from `$0` because Finder starts it in the user's home directory, and it
+needs its executable bit committed. `--open` opens the browser after the socket is bound; an
+`EADDRINUSE` is treated as "already running" and opens that instead of raising.
 
 The client script lives in the `SCRIPT` constant rather than inside `TEMPLATE`, so its braces
 don't need doubling for `str.format()`. Same for `REFRESH_ICON`. If you move JS or CSS into the
