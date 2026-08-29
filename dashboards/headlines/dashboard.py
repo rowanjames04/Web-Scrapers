@@ -8,6 +8,7 @@ Unlike the scrapers, a dashboard reads CSVs that live in other folders, so
 paths here resolve against this file rather than the working directory.
 """
 
+import base64
 import csv
 import datetime
 import html
@@ -65,10 +66,29 @@ def read_source(source):
             "summary": row.get("summary", ""),
             # Only news.com.au carries an editorial flag, so treat it as optional.
             "label": row.get("label", ""),
+            "thumbnail": thumbnail_uri(source["csv"], row.get("thumbnail", "")),
         })
 
     stories.sort(key=lambda story: int(story["rank"]) if story["rank"].isdigit() else 999)
     return stories, datetime.datetime.fromtimestamp(os.path.getmtime(source["csv"]))
+
+
+def thumbnail_uri(csv_path, thumbnail):
+    """Inline a scraped thumbnail as a data URI.
+
+    The CSV records a path relative to itself, and the bytes get embedded
+    rather than linked so the page stays self-contained and works offline.
+    Anything missing renders as an empty slot rather than a broken image.
+    """
+    if not thumbnail:
+        return ""
+
+    path = os.path.join(os.path.dirname(csv_path), thumbnail)
+    if not os.path.isfile(path):
+        return ""
+
+    with open(path, "rb") as file:
+        return "data:image/jpeg;base64," + base64.b64encode(file.read()).decode("ascii")
 
 
 def parse_time(value):
@@ -131,9 +151,18 @@ def build_story(story):
         meta.append(html.escape(story["section"]))
     meta.append(stamp(story["published"]))
 
+    thumbnail = (
+        '<img class="thumb" src="{}" alt="" loading="lazy" width="56" height="56">'.format(
+            story["thumbnail"]
+        )
+        if story["thumbnail"]
+        else '<div class="thumb thumb-empty" aria-hidden="true"></div>'
+    )
+
     return (
         '<li class="story">'
         '<span class="rank">{rank}</span>'
+        "{thumbnail}"
         '<div class="story-body">'
         '<a class="story-headline" href="{url}" target="_blank" '
         'rel="noopener noreferrer">{headline}</a>'
@@ -141,6 +170,7 @@ def build_story(story):
         "{summary}"
         "</div></li>".format(
             rank=html.escape(story["rank"]),
+            thumbnail=thumbnail,
             url=html.escape(story["url"], quote=True),
             headline=html.escape(story["headline"]),
             meta=' <span class="sep">·</span> '.join(meta),
@@ -333,10 +363,21 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
   .stories {{ list-style: none; margin: 0; padding: 0; }}
   .story {{
     display: grid;
-    grid-template-columns: 26px 1fr;
+    grid-template-columns: 22px 56px 1fr;
     gap: 12px;
     padding: 14px 0;
     border-bottom: 1px solid var(--grid);
+  }}
+  .thumb {{
+    width: 56px; height: 56px;
+    border-radius: 3px; object-fit: cover;
+    background: var(--grid);
+    margin-top: 2px;
+  }}
+  /* Stories with no card image keep the column, so the text stays aligned.
+     A quiet tint reads as "this one had no image" rather than as a broken one. */
+  .thumb-empty {{
+    background: var(--grid);
   }}
   .story:last-child {{ border-bottom: 0; padding-bottom: 0; }}
   .rank {{

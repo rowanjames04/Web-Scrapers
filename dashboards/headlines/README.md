@@ -29,6 +29,18 @@ page order: rank, headline linking to the article, section, publication time and
 column order**, so Ars sits left because it is listed first. Adding a third source means adding
 a dict and a colour, and changing the `.columns` grid, which is fixed at two columns.
 
+## Thumbnails
+
+Card images are **embedded as base64 data URIs, never linked**. The scrapers do the fetching and
+save the images beside their CSVs; the dashboard reads those files off disk and inlines the
+bytes. That is what keeps the page self-contained — it renders identically with the network off,
+and no publisher's CDN gets pinged when you open it.
+
+At 128px square per image the whole page lands around 120KB, which is the reason the scrapers
+downscale rather than storing what the sites serve. Stories with no card image, and any
+thumbnail missing from disk, render as an empty slot that keeps the column aligned rather than a
+broken image.
+
 ## The two things worth knowing
 
 **Rank is front page prominence, not popularity.** Neither site publishes a public read or

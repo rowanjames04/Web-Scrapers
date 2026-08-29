@@ -29,6 +29,13 @@ Python 3 plus:
 pip install requests beautifulsoup4
 ```
 
+Pillow is optional and only used by the headline scrapers, to downscale the thumbnails they
+save. They run without it:
+
+```bash
+pip install Pillow
+```
+
 ## Usage
 
 Each scraper is self contained and writes its CSV output next to itself, so run it from inside its own folder:

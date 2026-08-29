@@ -10,6 +10,13 @@ Python 3 plus:
 pip install requests beautifulsoup4
 ```
 
+Pillow is optional. With it, thumbnails are cropped square and scaled to 128px; without it they
+are stored at whatever size Ars served, which still works, just heavier:
+
+```bash
+pip install Pillow
+```
+
 ## Usage
 
 Run it from inside this folder so the CSV lands here:
@@ -43,6 +50,15 @@ ARS TECHNICA - TOP 10 TODAY
 | `section` | Ars category, e.g. `Tech Policy`, `AI`, `Space` |
 | `published` | Publication time, ISO 8601 with the site's UTC offset |
 | `summary` | The card's one line dek, empty when the card has none |
+| `thumbnail` | Path to the saved card image, relative to this folder. Empty when the card has none |
+
+Card images are saved to `thumbnails/`, named by the post ID Ars puts on each card so the
+filename is stable across runs. Images no longer in the top 10 are deleted on the next run, so
+the folder always mirrors the CSV.
+
+The scraper asks for the smallest variant in each card's `srcset` — Ars ships fixed WordPress
+sizes and ignores resize query params, so the srcset is the only place to request something
+small.
 
 ## How it works
 

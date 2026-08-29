@@ -115,6 +115,19 @@ scrapers return at 9am Sydney time before assuming it works.
 Both pages repeat their lead stories in later modules, so URLs are deduped keeping the first
 appearance — the one that reflects the story's billing.
 
+Each scraper also saves card images into its own `thumbnails/` folder, named by the site's own
+article ID, and records the relative path in the CSV. Two rules there:
+
+- **Pick from the card's `srcset`, don't invent a width.** Ars ships fixed WordPress sizes and
+  ignores resize query params; the news.com.au CDN answers `412` for any width it didn't list.
+- **Pillow is optional.** With it, images are cropped square and scaled to 128px; without it the
+  served bytes are stored as-is. Don't make it a hard import — the repo has no dependency
+  manifest and the scraper is meant to run on `requests` and `beautifulsoup4` alone.
+
+Each run prunes thumbnails that are no longer in the top 10, so the folder mirrors the CSV.
+news.com.au blocks that lead with an animation carry a `<video>` and no image, so they
+legitimately have no thumbnail.
+
 ### dashboards/headlines
 
 Reads both headline CSVs; `SOURCES` list order is column order, so Ars is left because it is
@@ -125,6 +138,11 @@ Timestamps are rendered in each publisher's own offset with that offset stated i
 header, never converted to a single timezone. The two columns routinely show different calendar
 dates for the same news cycle, and that difference is the point — normalising it away would hide
 the thing the page is showing.
+
+Thumbnails are read off disk and **embedded as base64 data URIs, never linked**. The dashboard
+does no fetching — that is the scrapers' job — and inlining is what keeps the page self-contained
+and openable straight from disk with the network off. A story with no image, or a thumbnail
+missing from disk, renders as an empty slot that holds the column alignment.
 
 `build_styles()` emits one `--series` token per source into all three theme blocks. Colours come
 from the same validated palette as the Woolworths dashboard; a new source needs a `(light, dark)`

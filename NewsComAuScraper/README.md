@@ -10,6 +10,13 @@ Python 3 plus:
 pip install requests beautifulsoup4
 ```
 
+Pillow is optional. With it, thumbnails are cropped square and scaled to 128px; without it they
+are stored at whatever size the site served, which still works, just heavier:
+
+```bash
+pip install Pillow
+```
+
 ## Usage
 
 Run it from inside this folder so the CSV lands here:
@@ -44,6 +51,17 @@ NEWS.COM.AU - TOP 10 TODAY
 | `published` | Publication time, ISO 8601 with the site's UTC offset |
 | `summary` | The block's standfirst, empty when it has none |
 | `label` | Editorial flag the site puts on the block: `LIVE`, `Analysis`, `Exclusive`. Usually empty |
+| `thumbnail` | Path to the saved card image, relative to this folder. Empty when the block has none |
+
+Card images are saved to `thumbnails/`, named by the site's own article ID so the filename is
+stable across runs. Images no longer in the top 10 are deleted on the next run, so the folder
+always mirrors the CSV.
+
+The scraper asks for the smallest URL in each block's `srcset`. **Do not invent a width** — the
+image CDN serves only the widths it lists there and answers `412` for anything else.
+
+Blocks that lead with an animation carry a `<video>` and no image at all, so they get no
+thumbnail. The terminal output marks those `[no image]` and the dashboard leaves the slot empty.
 
 ## How it works
 
