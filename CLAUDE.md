@@ -24,7 +24,10 @@ resolve paths against their own file instead and can be run from anywhere:
 ```bash
 cd QuoteScraper && python3 QuoteScraper.py
 cd WoolworthsScraper && python3 WoolworthsScraper.py
+cd ArsTechnicaScraper && python3 ArsTechnicaScraper.py
+cd NewsComAuScraper && python3 NewsComAuScraper.py
 python3 dashboards/woolworths/dashboard.py
+python3 dashboards/headlines/dashboard.py
 ```
 
 There is no test suite, linter or CI. Verification is manual: run the scraper and check
@@ -36,8 +39,8 @@ distinguish a real price movement from a parsing regression before assuming a bu
 
 ### Two scraping strategies, deliberately different
 
-`QuoteScraper` parses server-rendered HTML with BeautifulSoup. That approach does **not**
-work for Woolworths: their product pages are JavaScript-rendered, so `requests` plus
+`QuoteScraper`, `ArsTechnicaScraper` and `NewsComAuScraper` parse server-rendered HTML with
+BeautifulSoup. That approach does **not** work for Woolworths: their product pages are JavaScript-rendered, so `requests` plus
 BeautifulSoup returns an empty page. `WoolworthsScraper` therefore posts to the site's own
 internal JSON endpoint (`apis/ui/Search/products`) — the one the search page itself calls.
 Do not "fix" the Woolworths scraper by reaching for BeautifulSoup.
@@ -92,6 +95,40 @@ validated against both surfaces, not an invented hex.
 The generated page is fully self-contained — no network, no external assets — so it opens
 straight from disk. Keep it that way. It themes off `prefers-color-scheme` with tokens
 defined on bare `:root`, so any new colour must be declared as a token in both blocks.
+
+### The headline scrapers: what "today" means
+
+Both front pages are server-rendered, so these are plain BeautifulSoup jobs — no internal API
+hunt needed. Each hangs off the site's own card class (`<article>` on Ars, `article.storyblock`
+on news.com.au) and keeps DOM order, because that order **is** the editorial ranking. There is
+no public popularity count on either site, so front-page prominence is the honest stand-in for
+"top"; don't relabel it "most read".
+
+**Neither scraper filters on the local calendar date, and that is deliberate.** Ars publishes on
+US Eastern, so run from Australia a strict date match returns nothing for most of the working
+day. Instead the newest story on a front page sets that site's clock and `WINDOW_HOURS` (24)
+runs back from there. On news.com.au the same rule earns its keep differently: it drops the
+evergreen lifestyle promos mixed into the page, some of them a year or two old, without a hand-
+maintained list of sections to ignore. If you tighten this to a real date match, check what the
+scrapers return at 9am Sydney time before assuming it works.
+
+Both pages repeat their lead stories in later modules, so URLs are deduped keeping the first
+appearance — the one that reflects the story's billing.
+
+### dashboards/headlines
+
+Reads both headline CSVs; `SOURCES` list order is column order, so Ars is left because it is
+listed first. A missing CSV renders a placeholder column rather than failing, so one broken
+source doesn't take the page down.
+
+Timestamps are rendered in each publisher's own offset with that offset stated in the column
+header, never converted to a single timezone. The two columns routinely show different calendar
+dates for the same news cycle, and that difference is the point — normalising it away would hide
+the thing the page is showing.
+
+`build_styles()` emits one `--series` token per source into all three theme blocks. Colours come
+from the same validated palette as the Woolworths dashboard; a new source needs a `(light, dark)`
+pair validated against both surfaces, not an invented hex.
 
 ## Conventions
 

@@ -1,0 +1,228 @@
+<title>Today's Headlines: Ars Technica and news.com.au</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    color-scheme: light;
+    --plane: #f4f2ee;
+    --surface: #fbfaf8;
+    --ink: #12120f;
+    --ink-2: #52514c;
+    --muted: #8a887f;
+    --hairline: #e2e0d8;
+    --grid: #eae8e0;
+    --good: #0ca30c;
+    --flag-ink: #8a5a00;
+    --flag-bg: #f6efe0;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --plane: #0e0e0d;
+      --surface: #191917;
+      --ink: #f6f5f1;
+      --ink-2: #c3c2b7;
+      --muted: #8a887f;
+      --hairline: #2e2e2b;
+      --grid: #262624;
+      --good: #0ca30c;
+      --flag-ink: #e0b45c;
+      --flag-bg: #2a2418;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --plane: #0e0e0d;
+    --surface: #191917;
+    --ink: #f6f5f1;
+    --ink-2: #c3c2b7;
+    --muted: #8a887f;
+    --hairline: #2e2e2b;
+    --grid: #262624;
+    --good: #0ca30c;
+    --flag-ink: #e0b45c;
+    --flag-bg: #2a2418;
+  }
+
+  /* Per-source accent, one token each, declared in every theme block. */
+  .src-ars { --series: #2a78d6; }
+  .src-news { --series: #eb6834; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      .src-ars { --series: #3987e5; }
+      .src-news { --series: #d95926; }
+    }
+  }
+  :root[data-theme="dark"] {
+    .src-ars { --series: #3987e5; }
+    .src-news { --series: #d95926; }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--plane);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  a { color: inherit; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    margin: 6px 0 0;
+    font-size: clamp(26px, 4vw, 36px);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .lede {
+    margin: 10px 0 0;
+    max-width: 68ch;
+    color: var(--ink-2);
+    font-size: 15px;
+  }
+
+  .columns {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 20px 22px 24px;
+  }
+  .col { border-top: 3px solid var(--series); }
+
+  .col-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 10px;
+  }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--series); display: inline-block; flex: none;
+    align-self: center;
+  }
+  h2 { margin: 0; font-size: 17px; letter-spacing: -0.01em; }
+  h2 a { text-decoration: none; }
+  h2 a:hover { text-decoration: underline; }
+  .col-blurb { font-size: 12.5px; color: var(--muted); }
+
+  .col-stats {
+    display: flex; flex-wrap: wrap; gap: 4px 16px;
+    margin-top: 12px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--hairline);
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+  }
+  .col-stats strong { color: var(--ink); font-weight: 600; }
+  .col-note { margin: 10px 0 4px; font-size: 12.5px; color: var(--muted); }
+  .col-note code { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+
+  .stories { list-style: none; margin: 0; padding: 0; }
+  .story {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--grid);
+  }
+  .story:last-child { border-bottom: 0; padding-bottom: 0; }
+  .rank {
+    font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums;
+    color: var(--series); font-weight: 600; text-align: right; padding-top: 2px;
+  }
+  .story-body { min-width: 0; }
+  .story-headline {
+    font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em;
+    line-height: 1.35; text-decoration: none; text-wrap: balance;
+  }
+  .story-headline:hover { text-decoration: underline; text-decoration-color: var(--series); }
+  .story-meta {
+    margin-top: 5px;
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  }
+  .story-meta .sep { opacity: 0.6; }
+  .story-summary {
+    margin: 7px 0 0; font-size: 13.5px; color: var(--ink-2);
+    max-width: 56ch;
+  }
+  .flag {
+    font-size: 9.5px; letter-spacing: 0.07em;
+    padding: 2px 5px; border-radius: 3px;
+    color: var(--flag-ink); background: var(--flag-bg);
+  }
+  a:focus-visible { outline: 2px solid var(--good); outline-offset: 2px; }
+
+  footer { font-size: 12px; color: var(--muted); border-top: 1px solid var(--hairline); padding-top: 16px; }
+  footer p { margin: 0 0 6px; max-width: 76ch; }
+
+  @media (max-width: 820px) {
+    .columns { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Two front pages &middot; side by side</div>
+    <h1>Today's headlines</h1>
+    <p class="lede">The top 10 stories each masthead is leading with, in the order its own
+    front page ranks them. Two very different newsrooms, so the interesting bit is rarely the
+    overlap &mdash; it is what each one thinks the day is about.</p>
+  </header>
+
+  <div class="columns"><section class="card col src-ars"><div class="col-head"><span class="dot"></span><h2><a href="https://arstechnica.com/" target="_blank" rel="noopener noreferrer">Ars Technica</a></h2><span class="col-blurb">US technology, science and policy</span></div><div class="col-stats"><span><strong>10</strong> headlines</span><span><strong>7</strong> sections</span><span>28 Aug 7:00am &ndash; 28 Aug 6:14pm</span></div><p class="col-note">Times are the site's own, UTC−4. Scraped 29 Aug 5:16pm.</p><ol class="stories"><li class="story"><span class="rank">1</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/culture/2026/08/our-10-favorite-scenes-from-t2-judgment-day/" target="_blank" rel="noopener noreferrer">Our 10 favorite scenes from T2: Judgment Day</a><div class="story-meta">Culture <span class="sep">·</span> 28 Aug 12:44pm</div><p class="story-summary">James Cameron’s 1991 sci-fi blockbuster returns to theaters this weekend for its 35th anniversary.</p></div></li>
+<li class="story"><span class="rank">2</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/tech-policy/2026/08/kalshi-cant-evade-nevada-gambling-laws-by-calling-bets-swaps-court-rules/" target="_blank" rel="noopener noreferrer">Court rules Kalshi sports bets aren’t “swaps,” just gambling with a different name</a><div class="story-meta">Tech Policy <span class="sep">·</span> 28 Aug 6:14pm</div><p class="story-summary">Kalshi can’t evade Nevada gambling laws by calling bets “swaps,” judges rule.</p></div></li>
+<li class="story"><span class="rank">3</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/tech-policy/2026/08/cities-terminate-flock-contracts-at-record-pace-in-august/" target="_blank" rel="noopener noreferrer">Cities terminate Flock contracts at record pace in August</a><div class="story-meta">Tech Policy <span class="sep">·</span> 28 Aug 5:33pm</div><p class="story-summary">Cancellations have accelerated.</p></div></li>
+<li class="story"><span class="rank">4</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/health/2026/08/rfk-jr-has-lied-to-the-senate-lawmakers-call-for-criminal-probe-ouster/" target="_blank" rel="noopener noreferrer">“RFK Jr. has lied to the Senate”: Lawmakers call for criminal probe, ouster</a><div class="story-meta">Health <span class="sep">·</span> 28 Aug 5:17pm</div><p class="story-summary">RFK Jr. went to Samoa to spread vaccine fears. The measles outbreak after killed 83.</p></div></li>
+<li class="story"><span class="rank">5</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/tech-policy/2026/08/trump-blacklisting-of-woke-anthropic-deemed-illegal-by-federal-judge/" target="_blank" rel="noopener noreferrer">Trump blacklisting of “woke” Anthropic deemed illegal by federal judge</a><div class="story-meta">AI <span class="sep">·</span> 28 Aug 2:07pm</div><p class="story-summary">Anthropic refused to support lethal autonomous warfare and mass surveillance.</p></div></li>
+<li class="story"><span class="rank">6</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/space/2026/08/trump-calls-for-creation-of-a-space-academy-to-train-future-nasa-leaders/" target="_blank" rel="noopener noreferrer">Here’s what we know about the “space academy” Trump just announced</a><div class="story-meta">Space <span class="sep">·</span> 28 Aug 1:36pm</div><p class="story-summary">“It’s called the US Space Academy. That’s a big deal.”</p></div></li>
+<li class="story"><span class="rank">7</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/gadgets/2026/08/apple-one-and-apple-tv-subscription-prices-increase-by-up-to-20-percent/" target="_blank" rel="noopener noreferrer">Apple One and Apple TV subscription prices increase by up to 20 percent</a><div class="story-meta">Apple <span class="sep">·</span> 28 Aug 1:23pm</div><p class="story-summary">Annual Apple TV subscriptions get the biggest bump.</p></div></li>
+<li class="story"><span class="rank">8</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/tech-policy/2026/08/meta-tweaks-ai-glasses-to-block-some-creepy-recordings-but-privacy-risks-remain/" target="_blank" rel="noopener noreferrer">Meta makes AI glasses slightly less creepy with limit on nonconsensual recording</a><div class="story-meta">AI <span class="sep">·</span> 28 Aug 11:42am</div><p class="story-summary">Meta fixes AI glasses to stop recording any time users cover up the safety light.</p></div></li>
+<li class="story"><span class="rank">9</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/security/2026/08/authorities-arrest-2-alleged-members-of-prolific-hacking-group-teampcp/" target="_blank" rel="noopener noreferrer">Authorities arrest 2 alleged members of prolific hacking group TeamPCP</a><div class="story-meta">Information Technology <span class="sep">·</span> 28 Aug 7:15am</div><p class="story-summary">The group infected more than 1,000 organizations in a relentless supply-chain attack campaign.</p></div></li>
+<li class="story"><span class="rank">10</span><div class="story-body"><a class="story-headline" href="https://arstechnica.com/space/2026/08/rocket-report-europe-splashes-some-cash-on-launch-startups-pallas-1-nears-debut/" target="_blank" rel="noopener noreferrer">Rocket Report: Europe splashes some cash on launch startups; Pallas-1 nears debut</a><div class="story-meta">Space <span class="sep">·</span> 28 Aug 7:00am</div><p class="story-summary">“From here on, Starlink missions out of Florida will fly on Starship.”</p></div></li></ol></section>
+<section class="card col src-news"><div class="col-head"><span class="dot"></span><h2><a href="https://www.news.com.au/" target="_blank" rel="noopener noreferrer">news.com.au</a></h2><span class="col-blurb">Australian general news</span></div><div class="col-stats"><span><strong>10</strong> headlines</span><span><strong>8</strong> sections</span><span>28 Aug 9:59pm &ndash; 29 Aug 4:57pm</span></div><p class="col-note">Times are the site's own, UTC+10. Scraped 29 Aug 5:16pm.</p><ol class="stories"><li class="story"><span class="rank">1</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/lifestyle/health/health-problems/agony-baby-dead-as-measles-virus-grips-the-us/news-story/d9ae0706b2763eafed296f684f537896" target="_blank" rel="noopener noreferrer">‘BABY DIED IN AGONY’: US rocked by deaths as outbreak spreads</a><div class="story-meta"><span class="flag">Analysis</span> <span class="sep">·</span> 29 Aug 4:06pm</div><p class="story-summary">A vaccine-preventable disease that had been “eradicated” just a few years ago is sweeping across the United States and causing devastation.</p></div></li>
+<li class="story"><span class="rank">2</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/sport/nrl/jai-arrow-vision-brings-nrl-world-to-tears-as-he-makes-emotional-rabbitohs-return/news-story/2266607a727e595b23baab5721a625c6" target="_blank" rel="noopener noreferrer">NRL world in tears as Arrow returns to field</a><div class="story-meta">NRL <span class="sep">·</span> 29 Aug 4:47pm</div><p class="story-summary">Arrow, who continues his health battle with motor neurone disease, was clearly emotional as he stepped out for the touching moment.</p></div></li>
+<li class="story"><span class="rank">3</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/travel/travel-updates/incidents/nepal-death-toll-hits-584-as-number-of-missing-spikes-to-2400-including-38-australians/news-story/199b3f7259e9cdab02b37564186da890" target="_blank" rel="noopener noreferrer">616 now dead, sad twist in hunt for Aussies</a><div class="story-meta"><span class="flag">LIVE</span> <span class="sep">·</span> Incidents <span class="sep">·</span> 28 Aug 9:59pm</div><p class="story-summary">41 Aussies are missing after flooding and landslides on the Nepal-Tibet border, with one family revealing their loved one had arrived just minutes before disaster.</p></div></li>
+<li class="story"><span class="rank">4</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/lifestyle/real-life/this-is-the-ultimate-kathleen-folbigg-weds-childhood-friend-after-prison-ordeal/news-story/533c10760f43c8e5f04de38a514f5f31" target="_blank" rel="noopener noreferrer">Folbigg weds childhood friend after jail hell</a><div class="story-meta"><span class="flag">Exclusive</span> <span class="sep">·</span> Real Life <span class="sep">·</span> 29 Aug 3:29pm</div><p class="story-summary">Kathleen Folbigg, once wrongly branded Australia’s worst serial killer, has married her childhood sweetheart two years after her convictions were overturned.</p></div></li>
+<li class="story"><span class="rank">5</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/finance/business/other-industries/major-nsw-developer-bathla-group-plunges-into-administration-owing-32bn/news-story/e635bb59ca29977d1323a11989f37469" target="_blank" rel="noopener noreferrer">Admin blow for major developer</a><div class="story-meta">Other Industries <span class="sep">·</span> 29 Aug 4:57pm</div><p class="story-summary">There’s been another blow after a major property developer plunged into administration owing millions in debt.</p></div></li>
+<li class="story"><span class="rank">6</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/sport/nrl/jett-cleary-to-make-nrl-debut-ivan-and-nathan-make-dash-across-the-ditch/news-story/f2b0c513b1a7d67ccf5ac93817d3eea4" target="_blank" rel="noopener noreferrer">Cleary family’s mad dash to NZ for Jett</a><div class="story-meta">NRL <span class="sep">·</span> 29 Aug 4:48pm</div><p class="story-summary">Ivan and Nathan Cleary are set to make a mad dash across the ditch as Jett Cleary prepares for his big moment.</p></div></li>
+<li class="story"><span class="rank">7</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/finance/markets/prices-skyrocket-why-gold-rush-is-back-on-as-china-buying-explodes/news-story/00e921bcd395497302d2afcc7ba18dba" target="_blank" rel="noopener noreferrer">Gold prices ‘skyrocket’, China’s stash surges</a><div class="story-meta">Markets <span class="sep">·</span> 29 Aug 1:49pm</div><p class="story-summary">Gold is mounting a fierce comeback as China continues to hoard the precious metal, and one Aussie expert believes it’s primed for a massive end-of-year surge.</p></div></li>
+<li class="story"><span class="rank">8</span><div class="story-body"><a class="story-headline" href="https://kidspot.news.com.au/parenting/mums-demand-to-ban-oreos-from-lunch-boxes-sparks-fierce-debate/news-story/45d5965a39c6dd111b437f6923c12092" target="_blank" rel="noopener noreferrer">‘Unreasonable’: Mum’s Oreo ban backfires</a><div class="story-meta">Kidspot <span class="sep">·</span> 29 Aug 4:42pm</div><p class="story-summary">A mum’s request to ban Oreos from her daughter’s classmates’ lunch boxes has triggered a viral worldwide parenting debate dubbed “Oreogate”.</p></div></li>
+<li class="story"><span class="rank">9</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/sport/afl/pies-fans-turn-on-each-other-in-ugly-crowd-brawl-after-collingwoods-afl-season-ends-in-dramatic-fashion/news-story/8a2475f57e7e858895a1d9322e888330" target="_blank" rel="noopener noreferrer">Collingwood fans lose it in ugly crowd brawl</a><div class="story-meta">AFL <span class="sep">·</span> 29 Aug 11:05am</div><p class="story-summary">Police were forced to step in after more than a dozen unruly Collingwood fans got into a scrap in the crowd as the Pies’ season came to an end.</p></div></li>
+<li class="story"><span class="rank">10</span><div class="story-body"><a class="story-headline" href="https://www.news.com.au/lifestyle/food/eat/golden-gaytime-and-cinnabon-team-up-for-limitededition-junior-ice-cream-release/news-story/f54fdf7b7bf44568a09f9bd8780a7d1f" target="_blank" rel="noopener noreferrer">‘Hype is real’: New Aussie freezer release</a><div class="story-meta">Eat <span class="sep">·</span> 29 Aug 3:02pm</div><p class="story-summary">A wild new ice cream is sending Aussie dessert lovers into a frenzy, with news.com.au writers giving it a solid 10/10 rating.</p></div></li></ol></section></div>
+
+  <footer>
+    <p>Rank is front page prominence, not clicks or shares &mdash; neither site publishes a
+    public popularity count, so the editors' running order is the honest stand-in.</p>
+    <p>&ldquo;Today&rdquo; is each site's own news day rather than this machine's calendar date:
+    the newest story on a front page sets that site's clock and the previous 24 hours count as
+    today. Ars publishes on US Eastern time, so its day and an Australian one rarely line up.</p>
+    <p>Personal news dashboard &mdash; not affiliated with or endorsed by Ars Technica or
+    news.com.au. Headlines and summaries are the publishers'; follow a link for the full story.</p>
+  </footer>
+</div>
