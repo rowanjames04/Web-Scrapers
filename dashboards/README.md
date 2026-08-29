@@ -24,6 +24,7 @@ python3 dashboards/headlines/dashboard.py
 ```
 
 The headlines dashboard also ships an optional [`serve.py`](headlines/serve.py) that serves the
-page and wires up its refresh buttons, plus a double-clickable
-[`start-dashboard.command`](headlines/start-dashboard.command) that starts it and opens the page.
-Both are additions, not requirements — the generated HTML is self-contained either way.
+page and wires up its refresh buttons, plus double-clickable
+[`start-dashboard.command`](headlines/start-dashboard.command) and
+[`stop-dashboard.command`](headlines/stop-dashboard.command) to start and stop it.
+All are additions, not requirements — the generated HTML is self-contained either way.

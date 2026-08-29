@@ -32,6 +32,11 @@ and rebuilds the page.
 lot: starts the server and opens the page in your browser. Closing the Terminal window it opens,
 or pressing Ctrl-C in it, stops the server.
 
+**Double-click [`stop-dashboard.command`](stop-dashboard.command)** to stop it — for when that
+window is gone or the server was started some other way. It asks `serve.py` which port it uses,
+so the two can't drift apart, and it only ever stops this dashboard: port 8000 is popular, so if
+something else is holding it, the script says what and leaves it running.
+
 Or from a terminal:
 
 ```bash
@@ -44,11 +49,11 @@ Opened straight from disk the page still renders in full — the buttons just ex
 instead of failing against an endpoint that was never there. **The server is optional and adds
 nothing to the page; the generated HTML stays self-contained either way.**
 
-The launcher is a macOS convenience — `.command` is the extension Finder treats as
-double-clickable. It is a plain shell script, so it runs from any terminal too. Two notes:
+Both launchers are a macOS convenience — `.command` is the extension Finder treats as
+double-clickable. They are plain shell scripts, so they run from any terminal too. Two notes:
 
-- It needs its executable bit. That survives `git clone`, but **not** downloading the repo as a
-  zip; if you went that route, run `chmod +x start-dashboard.command` once.
+- They need their executable bit. That survives `git clone`, but **not** downloading the repo as
+  a zip; if you went that route, run `chmod +x *.command` once.
 - Double-clicking it while it is already running won't start a second server or throw an error.
   It says so and opens the page against the one already up.
 

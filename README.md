@@ -53,7 +53,7 @@ python3 dashboards/headlines/dashboard.py
 
 The headlines dashboard has refresh buttons, which need a local server since a page opened from
 disk cannot run a scraper. Double-click `dashboards/headlines/start-dashboard.command` to start
-it and open the page, or run it yourself. The page stays readable from disk either way:
+it and open the page, and `stop-dashboard.command` to stop it, or run it yourself. The page stays readable from disk either way:
 
 ```bash
 python3 dashboards/headlines/serve.py
