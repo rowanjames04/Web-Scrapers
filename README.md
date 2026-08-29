@@ -51,4 +51,11 @@ file, so they can be run from anywhere:
 python3 dashboards/headlines/dashboard.py
 ```
 
+The headlines dashboard has refresh buttons, which need a local server since a page opened from
+disk cannot run a scraper. It stays readable from disk either way:
+
+```bash
+python3 dashboards/headlines/serve.py
+```
+
 See each project's own README for configuration and output details.

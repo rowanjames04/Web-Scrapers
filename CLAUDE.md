@@ -28,6 +28,7 @@ cd ArsTechnicaScraper && python3 ArsTechnicaScraper.py
 cd NewsComAuScraper && python3 NewsComAuScraper.py
 python3 dashboards/woolworths/dashboard.py
 python3 dashboards/headlines/dashboard.py
+python3 dashboards/headlines/serve.py     # optional, powers the refresh buttons
 ```
 
 There is no test suite, linter or CI. Verification is manual: run the scraper and check
@@ -143,6 +144,34 @@ Thumbnails are read off disk and **embedded as base64 data URIs, never linked**.
 does no fetching — that is the scrapers' job — and inlining is what keeps the page self-contained
 and openable straight from disk with the network off. A story with no image, or a thumbnail
 missing from disk, renders as an empty slot that holds the column alignment.
+
+### The refresh buttons and serve.py
+
+The page has a refresh button top right, plus one per column that scrapes a single source. **A
+page on `file://` cannot start a Python process**, so those buttons need `serve.py`: it serves
+the same HTML and exposes a `POST /refresh?source=ars|news|all` that runs the scrapers and
+rebuilds the page.
+
+This does not weaken the self-contained rule above, and must not be allowed to. The generated
+HTML has no external assets either way, still opens from disk, and still renders in full there —
+the script checks `location.protocol` and, on `file://`, prints the command to run instead of
+firing a fetch at an endpoint that was never there. **Keep that fallback working**; it is what
+lets the page stay a file you can email to yourself.
+
+`serve.py` is stdlib-only and deliberately small. Four properties are load-bearing rather than
+incidental:
+
+- It binds `127.0.0.1`. The endpoint starts processes; don't make it listen wider.
+- Requests name a **source key**, never a path — `SOURCES` maps the key to a folder and script.
+  Don't take a script name or path from the request.
+- A `threading.Lock` allows one refresh at a time and returns `409` otherwise, so two runs can't
+  race for the same CSV.
+- A failed scraper returns before the rebuild, so the page is never regenerated from a
+  half-written CSV.
+
+The client script lives in the `SCRIPT` constant rather than inside `TEMPLATE`, so its braces
+don't need doubling for `str.format()`. Same for `REFRESH_ICON`. If you move JS or CSS into the
+template itself, every `{` and `}` has to be doubled.
 
 `build_styles()` emits one `--series` token per source into all three theme blocks. Colours come
 from the same validated palette as the Woolworths dashboard; a new source needs a `(light, dark)`

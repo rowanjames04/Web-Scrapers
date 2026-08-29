@@ -19,6 +19,35 @@ the HTML. It needs no server, no network and no dependencies, so open it straigh
 If a CSV is missing, that column renders a "run the scraper" placeholder instead of failing,
 so one broken source does not take the page down with it.
 
+## Refresh buttons
+
+The page has a **Refresh both feeds** button at the top right, and a smaller one at the top right
+of each column that scrapes only that source.
+
+Those buttons need [`serve.py`](serve.py), because **a page on `file://` cannot start a Python
+process**. It serves the same `dashboard.html` and exposes one endpoint that runs the scrapers
+and rebuilds the page:
+
+```bash
+python3 dashboards/headlines/serve.py
+```
+
+Then open <http://127.0.0.1:8000/>. A click scrapes, regenerates the HTML and reloads.
+
+Opened straight from disk the page still renders in full — the buttons just explain what to run
+instead of failing against an endpoint that was never there. **The server is optional and adds
+nothing to the page; the generated HTML stays self-contained either way.**
+
+Four things worth knowing about the server:
+
+- It binds to `127.0.0.1`. The endpoint starts processes, so it has no business listening on
+  anything the rest of the network can reach.
+- A request names a source key (`ars`, `news`, `all`), never a path. Anything else is a `400`.
+- One refresh runs at a time. A second request while one is in flight gets a `409` rather than
+  racing it for the same CSV.
+- If a scraper fails, the page is left alone rather than rebuilt from a half-written CSV, and the
+  error comes back to the status line next to the button.
+
 ## What it shows
 
 Each column heads with the masthead, its headline count, how many distinct sections those

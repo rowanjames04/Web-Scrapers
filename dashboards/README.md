@@ -22,3 +22,7 @@ network, no external assets, so the page opens straight from disk.
 python3 dashboards/woolworths/dashboard.py
 python3 dashboards/headlines/dashboard.py
 ```
+
+The headlines dashboard also ships an optional [`serve.py`](headlines/serve.py) that serves the
+page and wires up its refresh buttons. It is an addition, not a requirement — the generated HTML
+is self-contained with or without it.

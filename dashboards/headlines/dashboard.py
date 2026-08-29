@@ -181,15 +181,29 @@ def build_story(story):
     )
 
 
+def refresh_button(source):
+    """Per-column refresh, scraping just this source."""
+    label = "Refresh " + source["name"]
+    return (
+        '<button class="refresh refresh-icon" type="button" data-refresh="{key}" '
+        'title="{label}" aria-label="{label}">{icon}</button>'.format(
+            key=source["key"],
+            label=html.escape(label, quote=True),
+            icon=REFRESH_ICON,
+        )
+    )
+
+
 def build_column(source, stories, scraped):
     if not stories:
         return (
             '<section class="card col src-{key}">'
             '<div class="col-head"><span class="dot"></span>'
-            "<h2>{name}</h2></div>"
+            "<h2>{name}</h2>{button}</div>"
             '<p class="col-note">No headlines yet. Run <code>{scraper}</code> to fill this '
             "column.</p></section>".format(
                 key=source["key"],
+                button=refresh_button(source),
                 name=html.escape(source["name"]),
                 scraper=html.escape(source["scraper"]),
             )
@@ -205,6 +219,7 @@ def build_column(source, stories, scraped):
         '<span class="dot"></span>'
         '<h2><a href="{home}" target="_blank" rel="noopener noreferrer">{name}</a></h2>'
         '<span class="col-blurb">{blurb}</span>'
+        "{button}"
         "</div>"
         '<div class="col-stats">'
         "<span><strong>{count}</strong> headlines</span>"
@@ -216,6 +231,7 @@ def build_column(source, stories, scraped):
         '<ol class="stories">{stories}</ol>'
         "</section>".format(
             key=source["key"],
+            button=refresh_button(source),
             home=html.escape(source["home"], quote=True),
             name=html.escape(source["name"]),
             blurb=html.escape(source["blurb"]),
@@ -230,6 +246,87 @@ def build_column(source, stories, scraped):
     )
 
 
+# Inline so the page stays self-contained - no icon font, no external asset.
+REFRESH_ICON = (
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" '
+    'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>'
+)
+
+# Kept out of the format string so the braces need no doubling.
+SCRIPT = """
+(function () {
+  var status = document.querySelector('[data-status]');
+  var buttons = [].slice.call(document.querySelectorAll('[data-refresh]'));
+
+  // On file:// there is no server to ask, and the page says so rather than
+  // failing silently against an endpoint that was never there.
+  var served = location.protocol === 'http:' || location.protocol === 'https:';
+
+  var SERVE = 'python3 dashboards/headlines/serve.py';
+  var BUILD = 'python3 dashboards/headlines/dashboard.py';
+  var SCRAPE = {
+    ars: 'cd ArsTechnicaScraper && python3 ArsTechnicaScraper.py && cd ..',
+    news: 'cd NewsComAuScraper && python3 NewsComAuScraper.py && cd ..'
+  };
+
+  function manualCommand(source) {
+    var steps = source === 'all' ? [SCRAPE.ars, SCRAPE.news] : [SCRAPE[source]];
+    return steps.concat(BUILD).join(' && ');
+  }
+
+  function setStatus(text, kind) {
+    status.textContent = text;
+    status.className = 'status' + (kind ? ' is-' + kind : '');
+  }
+
+  function busy(on) {
+    buttons.forEach(function (button) { button.disabled = on; });
+    document.body.classList.toggle('is-busy', on);
+  }
+
+  buttons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      var source = button.getAttribute('data-refresh');
+
+      if (!served) {
+        setStatus('This page was opened from disk, so it cannot run the scrapers. '
+          + 'Start the server with ' + SERVE + ' and these buttons work. '
+          + 'Or do it by hand: ' + manualCommand(source), 'warn');
+        return;
+      }
+
+      busy(true);
+      setStatus(source === 'all' ? 'Refreshing both feeds\u2026' : 'Refreshing\u2026');
+
+      fetch('/refresh?source=' + encodeURIComponent(source), { method: 'POST' })
+        .then(function (response) {
+          return response.json().then(function (data) {
+            return { ok: response.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (result.ok && result.data.ok) {
+            setStatus('Done, reloading\u2026', 'good');
+            location.reload();
+          } else {
+            busy(false);
+            setStatus(result.data.log || 'Refresh failed', 'warn');
+          }
+        })
+        .catch(function (error) {
+          busy(false);
+          setStatus('Could not reach the server: ' + error.message, 'warn');
+        });
+    });
+  });
+
+  if (!served) {
+    setStatus('Static page \u2014 run serve.py to refresh from here.');
+  }
+})();
+"""
+
 TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
@@ -243,6 +340,8 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
     --hairline: #e2e0d8;
     --grid: #eae8e0;
     --good: #0ca30c;
+    --good-ink: #006300;
+    --warn-ink: #8a5a00;
     --flag-ink: #8a5a00;
     --flag-bg: #f6efe0;
     --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -259,6 +358,8 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
       --hairline: #2e2e2b;
       --grid: #262624;
       --good: #0ca30c;
+      --good-ink: #4cc44c;
+      --warn-ink: #e0b45c;
       --flag-ink: #e0b45c;
       --flag-bg: #2a2418;
     }}
@@ -273,6 +374,8 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
     --hairline: #2e2e2b;
     --grid: #262624;
     --good: #0ca30c;
+    --good-ink: #4cc44c;
+    --warn-ink: #e0b45c;
     --flag-ink: #e0b45c;
     --flag-bg: #2a2418;
   }}
@@ -319,6 +422,41 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
     font-size: 15px;
   }}
 
+  /* Status on the left, refresh pinned to the top right of the page. */
+  .toolbar {{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px 14px;
+  }}
+  .refresh {{
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-2); background: var(--surface);
+    border: 1px solid var(--hairline); border-radius: 4px;
+    padding: 7px 12px; cursor: pointer;
+    transition: border-color 0.12s ease, color 0.12s ease;
+  }}
+  .refresh:hover:not(:disabled) {{ color: var(--ink); border-color: var(--muted); }}
+  .refresh:disabled {{ opacity: 0.55; cursor: progress; }}
+  .refresh:focus-visible {{ outline: 2px solid var(--good); outline-offset: 2px; }}
+  /* The per-column button is icon only, and margin-left pins it to the top right
+     of its column head however long the masthead name and blurb run. */
+  .refresh-icon {{
+    padding: 5px; border-radius: 50%; color: var(--muted);
+    margin-left: auto; align-self: center;
+  }}
+  .refresh-icon:hover:not(:disabled) {{ color: var(--series); border-color: var(--series); }}
+
+  .is-busy .refresh svg {{ animation: spin 0.9s linear infinite; }}
+  @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+
+  .status {{ font-size: 12.5px; color: var(--muted); flex: 1 1 22ch; min-width: 0; }}
+  .status.is-good {{ color: var(--good-ink); }}
+  .status.is-warn {{ color: var(--warn-ink); }}
+
   .columns {{
     display: grid;
     gap: 20px;
@@ -347,7 +485,7 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
   h2 {{ margin: 0; font-size: 17px; letter-spacing: -0.01em; }}
   h2 a {{ text-decoration: none; }}
   h2 a:hover {{ text-decoration: underline; }}
-  .col-blurb {{ font-size: 12.5px; color: var(--muted); }}
+  .col-blurb {{ font-size: 12.5px; color: var(--muted); min-width: 0; }}
 
   .col-stats {{
     display: flex; flex-wrap: wrap; gap: 4px 16px;
@@ -412,13 +550,22 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
 
   @media (max-width: 820px) {{
     .columns {{ grid-template-columns: 1fr; }}
+    /* Keep the refresh button on the masthead's line and drop the blurb below,
+       rather than letting the button wrap down beside the blurb. */
+    .col-blurb {{ order: 3; flex-basis: 100%; }}
   }}
   @media (prefers-reduced-motion: reduce) {{
     * {{ transition: none !important; }}
+    .is-busy .refresh svg {{ animation: none; }}
   }}
 </style>
 
 <div class="wrap">
+  <div class="toolbar">
+    <span class="status" data-status></span>
+    <button class="refresh" type="button" data-refresh="all">{icon}Refresh both feeds</button>
+  </div>
+
   <header>
     <div class="eyebrow">Two front pages &middot; side by side</div>
     <h1>Today's headlines</h1>
@@ -439,6 +586,8 @@ TEMPLATE = """<title>Today's Headlines: Ars Technica and news.com.au</title>
     news.com.au. Headlines and summaries are the publishers'; follow a link for the full story.</p>
   </footer>
 </div>
+
+<script>{script}</script>
 """
 
 
@@ -463,8 +612,10 @@ def main():
 
     page = TEMPLATE.format(
         styles=build_styles(),
+        icon=REFRESH_ICON,
         top_n=longest,
         columns="\n".join(columns),
+        script=SCRIPT,
     )
 
     with open(HTML_FILE, "w") as file:
