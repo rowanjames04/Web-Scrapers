@@ -30,10 +30,21 @@ python3 dashboards/headlines/install-app.py
 ```
 
 That builds **Headlines Dashboard** in your Applications folder. Open it from Finder, Launchpad
-or Spotlight and a 📰 appears in the menu bar — there is no Dock icon, which is what `LSUIElement`
-in the bundle buys. The menu has:
+or Spotlight and it **opens the dashboard in its own window** and puts a 📰 in the menu bar.
 
-- **Open Dashboard** — opens the page in your browser
+There is no Dock icon — that is what `LSUIElement` in the bundle buys, and it is the point of a
+menu bar app. It also means launching it has no visible effect *unless* it opens something, which
+is why it shows the dashboard on launch rather than waiting to be asked.
+
+The window is a Chrome app-mode window: no tabs, no address bar, so it reads as an app rather
+than a browser tab. Without Chrome installed it falls back to your default browser.
+
+Launching it a second time while it is already running opens the dashboard again rather than
+adding a second menu bar icon.
+
+The menu has:
+
+- **Open Dashboard** — opens the dashboard window again if you closed it
 - **Refresh Both Feeds**, **Refresh Ars Technica**, **Refresh news.com.au**
 - a status line showing what it is doing
 - **Restart App** and **Quit**. Quit stops the server.

@@ -189,7 +189,13 @@ that kills whatever holds the port is a script that will one day kill the wrong 
 in a daemon thread in-process, so the endpoint, the source keys and the refresh lock stay in one
 place. Keep it that way.
 
-Three properties are load-bearing:
+**Launching it opens a window.** A menu bar app has no Dock icon and no window of its own, so
+without this, double-clicking it appears to do nothing at all — which reads as a broken app. It
+opens a Chrome app-mode window (`--app=`), which has no tabs or address bar, and falls back to
+the default browser. `--no-open` suppresses it, which is what "Restart App" re-execs with, and
+what to use when testing so repeated launches don't pile up windows.
+
+Four properties are load-bearing:
 
 - **The bundle wraps, it does not copy.** Its executable runs `app.py` from the repo, so edits
   are live on the next launch and "Restart App" re-execs to pick them up. Don't make the
@@ -198,6 +204,9 @@ Three properties are load-bearing:
   and would otherwise resolve `python3` to Apple's build, which may lack `rumps`. With no
   Terminal, that failure is invisible — which is also why the launcher tees everything to
   `~/Library/Logs/HeadlinesDashboard.log`.
+- **A second launch doesn't start a second instance.** `already_serving()` probes the port
+  first; if the app is already up, the new process just opens the dashboard and exits rather
+  than adding a duplicate menu bar icon that quietly does nothing.
 - **The installer calls `lsregister`.** A freshly built bundle is unknown to LaunchServices, so
   `open` and Spotlight silently do nothing and Finder shows a stale icon. This cost an hour once.
 

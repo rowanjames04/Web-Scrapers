@@ -14,6 +14,8 @@ install-app.py wraps this into an app bundle for the Applications folder.
 
 import http.server
 import os
+import socket
+import subprocess
 import sys
 import threading
 import webbrowser
@@ -30,6 +32,36 @@ import rumps
 import serve
 
 URL = "http://{}:{}/".format(serve.HOST, serve.PORT)
+
+# Chrome's app mode gives a standalone window with no tabs or address bar, which
+# is much closer to "an app" than a tab in whatever browser happens to be open.
+# Without Chrome this falls back to the default browser.
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+
+def open_dashboard_window():
+    """Show the dashboard. Logged, because there is no Terminal to watch."""
+    try:
+        if os.path.exists(CHROME):
+            print("opening window: chrome --app")
+            subprocess.Popen(
+                [CHROME, "--app=" + URL],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+        else:
+            print("opening window: default browser")
+            webbrowser.open(URL)
+    except OSError as error:
+        print("could not open a window: " + str(error))
+
+
+def already_serving():
+    """True when something already holds the port - usually a second launch."""
+    with socket.socket() as probe:
+        probe.settimeout(0.5)
+        return probe.connect_ex((serve.HOST, serve.PORT)) == 0
 
 # Menu bar glyph. Swap for a template image if you want something monochrome.
 IDLE_TITLE = "📰"
@@ -68,6 +100,12 @@ class HeadlinesApp(rumps.App):
         self.start_server()
         rumps.Timer(self.tick, 0.4).start()
 
+        # Launching an app and seeing nothing happen is not much of an app, so
+        # show the dashboard straight away. A restart skips this, otherwise it
+        # would pile up a new window every time.
+        if "--no-open" not in sys.argv[1:]:
+            open_dashboard_window()
+
     # ---------------------------------------------------------------- server
 
     def start_server(self):
@@ -97,7 +135,7 @@ class HeadlinesApp(rumps.App):
     # ----------------------------------------------------------------- menu
 
     def open_dashboard(self, _):
-        webbrowser.open(URL)
+        open_dashboard_window()
 
     def refresh_all(self, _):
         self.refresh(list(serve.SOURCES), "both feeds")
@@ -144,7 +182,9 @@ class HeadlinesApp(rumps.App):
             return
 
         self.stop_server()
-        os.execv(sys.executable, [sys.executable, os.path.abspath(__file__)])
+        os.execv(
+            sys.executable, [sys.executable, os.path.abspath(__file__), "--no-open"]
+        )
 
     def quit_app(self, _):
         self.stop_server()
@@ -169,5 +209,15 @@ class HeadlinesApp(rumps.App):
             self.title = wanted
 
 
-if __name__ == "__main__":
+def main():
+    # A second launch shouldn't add a second menu bar icon that quietly does
+    # nothing. Show the dashboard from the instance already running and stop.
+    if already_serving():
+        open_dashboard_window()
+        return
+
     HeadlinesApp().run()
+
+
+if __name__ == "__main__":
+    main()
