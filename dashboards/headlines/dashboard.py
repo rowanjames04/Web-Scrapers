@@ -621,7 +621,13 @@ def main():
     with open(HTML_FILE, "w") as file:
         file.write(page)
 
-    print("Wrote " + os.path.basename(HTML_FILE) + " (" + str(total) + " headlines)")
+    # Size is reported because the thumbnails are inlined: if a scraper ever
+    # stores full-size images instead of 128px ones, the page quietly grows
+    # several times over and nothing else would show it.
+    size = os.path.getsize(HTML_FILE) // 1024
+    print("Wrote {} ({} headlines, {}KB)".format(
+        os.path.basename(HTML_FILE), total, size
+    ))
 
 
 if __name__ == "__main__":

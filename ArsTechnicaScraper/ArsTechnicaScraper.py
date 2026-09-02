@@ -83,7 +83,10 @@ def shrink(data):
     """
     try:
         from PIL import Image
-    except ImportError:
+    except ImportError as error:
+        # Say so rather than silently storing a full-size image: a page four
+        # times heavier than it should be is not an obvious symptom.
+        print("  [Pillow unavailable, storing image as served: " + str(error) + "]")
         return data
 
     image = Image.open(io.BytesIO(data))
