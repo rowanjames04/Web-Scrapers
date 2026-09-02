@@ -19,6 +19,49 @@ the HTML. It needs no server, no network and no dependencies, so open it straigh
 If a CSV is missing, that column renders a "run the scraper" placeholder instead of failing,
 so one broken source does not take the page down with it.
 
+## The menu bar app
+
+`Headlines Dashboard.app` puts the whole thing in your menu bar: no Terminal window, and the
+server lives and dies with the app.
+
+```bash
+python3 -m pip install rumps
+python3 dashboards/headlines/install-app.py
+```
+
+That builds **Headlines Dashboard** in your Applications folder. Open it from Finder, Launchpad
+or Spotlight and a 📰 appears in the menu bar — there is no Dock icon, which is what `LSUIElement`
+in the bundle buys. The menu has:
+
+- **Open Dashboard** — opens the page in your browser
+- **Refresh Both Feeds**, **Refresh Ars Technica**, **Refresh news.com.au**
+- a status line showing what it is doing
+- **Restart App** and **Quit**. Quit stops the server.
+
+Refreshes run on a background thread, so the menu stays responsive while a scrape is in flight,
+and the glyph switches to ⏳ while one runs.
+
+### Updating it
+
+**The bundle is a wrapper, not a copy.** Its executable runs `app.py` straight out of this repo,
+so edit anything — the scrapers, `dashboard.py`, `serve.py`, the app itself — and the change is
+live on the next launch, or immediately via **Restart App**. No reinstall.
+
+Re-run `install-app.py` only to change the icon or app name, or after moving the repo, since the
+bundle stores an absolute path. It is safe to re-run: it updates in place, and it refuses to
+touch anything at that path it did not create. `--uninstall` removes it again.
+
+Two things the installer handles that are easy to miss:
+
+- **It pins the interpreter.** A Finder-launched app gets a minimal `PATH` and would resolve
+  `python3` to Apple's build, which may not have `rumps` — and with no Terminal, that fails
+  invisibly. The bundle records the full path of the Python you installed with.
+- **It registers the bundle with LaunchServices.** Without that, a freshly built app is unknown
+  to the system: `open` and Spotlight quietly do nothing and Finder shows a stale icon.
+
+Because a bundle has no Terminal to print to, everything it writes goes to
+`~/Library/Logs/HeadlinesDashboard.log`. Check there first if it will not start.
+
 ## Refresh buttons
 
 The page has a **Refresh both feeds** button at the top right, and a smaller one at the top right

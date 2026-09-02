@@ -59,4 +59,10 @@ it and open the page, and `stop-dashboard.command` to stop it, or run it yoursel
 python3 dashboards/headlines/serve.py
 ```
 
+Or install it as a menu bar app, which runs the server inside itself with no Terminal window:
+
+```bash
+python3 -m pip install rumps && python3 dashboards/headlines/install-app.py
+```
+
 See each project's own README for configuration and output details.

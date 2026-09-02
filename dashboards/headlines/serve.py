@@ -60,7 +60,21 @@ def run_script(folder, script):
         text=True,
         timeout=SCRAPE_TIMEOUT,
     )
-    return result.returncode == 0, (result.stdout + result.stderr).strip()
+    return result.returncode == 0, result.stdout, result.stderr
+
+
+def summarise(stdout, stderr, prefer_error=False):
+    """The one line worth showing in the UI.
+
+    stdout carries the "Saved N headlines" line worth reporting; stderr may hold
+    nothing but a deprecation warning, so merging the two and taking the last
+    line can surface a fragment of a warning instead of the result.
+    """
+    for stream in ((stderr, stdout) if prefer_error else (stdout, stderr)):
+        lines = [line.strip() for line in stream.splitlines() if line.strip()]
+        if lines:
+            return lines[-1]
+    return "no output"
 
 
 def refresh(keys):
@@ -69,13 +83,13 @@ def refresh(keys):
 
     for key in keys:
         folder, script = SOURCES[key]
-        ok, output = run_script(folder, script)
-        log.append(script + ": " + (output.splitlines() or ["no output"])[-1])
+        ok, stdout, stderr = run_script(folder, script)
+        log.append(script + ": " + summarise(stdout, stderr, prefer_error=not ok))
         if not ok:
             return False, "\n".join(log + ["failed, page left unchanged"])
 
-    ok, output = run_script(os.path.dirname(DASHBOARD), os.path.basename(DASHBOARD))
-    log.append("dashboard.py: " + (output.splitlines() or ["no output"])[-1])
+    ok, stdout, stderr = run_script(os.path.dirname(DASHBOARD), os.path.basename(DASHBOARD))
+    log.append("dashboard.py: " + summarise(stdout, stderr, prefer_error=not ok))
     return ok, "\n".join(log)
 
 
@@ -156,8 +170,8 @@ def main():
     # A launcher double-clicked on a fresh clone shouldn't land on a 404.
     if not os.path.exists(HTML_FILE):
         print("No dashboard.html yet, building one...")
-        ok, output = run_script(os.path.dirname(DASHBOARD), os.path.basename(DASHBOARD))
-        print("  " + (output.splitlines() or ["no output"])[-1])
+        ok, stdout, stderr = run_script(os.path.dirname(DASHBOARD), os.path.basename(DASHBOARD))
+        print("  " + summarise(stdout, stderr, prefer_error=not ok))
         if not ok:
             print("\nCouldn't build the page. Run the scrapers first.")
             return 1

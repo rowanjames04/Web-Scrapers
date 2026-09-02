@@ -27,4 +27,5 @@ The headlines dashboard also ships an optional [`serve.py`](headlines/serve.py) 
 page and wires up its refresh buttons, plus double-clickable
 [`start-dashboard.command`](headlines/start-dashboard.command) and
 [`stop-dashboard.command`](headlines/stop-dashboard.command) to start and stop it.
+There is also `install-app.py`, which wraps it as a menu bar app for the Applications folder.
 All are additions, not requirements — the generated HTML is self-contained either way.

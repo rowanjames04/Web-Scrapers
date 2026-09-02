@@ -31,6 +31,7 @@ python3 dashboards/headlines/dashboard.py
 python3 dashboards/headlines/serve.py     # optional, powers the refresh buttons
 open dashboards/headlines/start-dashboard.command   # or double-click it in Finder
 open dashboards/headlines/stop-dashboard.command    # stops it again
+python3 dashboards/headlines/install-app.py         # menu bar app in /Applications
 ```
 
 There is no test suite, linter or CI. Verification is manual: run the scraper and check
@@ -180,6 +181,31 @@ needs its executable bit committed. `--open` opens the browser after the socket 
 two can't drift apart — keep `serve.py` free of import-time side effects or that breaks. It
 kills only a process whose command line contains `serve.py`; port 8000 is popular, and a script
 that kills whatever holds the port is a script that will one day kill the wrong thing.
+
+### The menu bar app
+
+`app.py` is a `rumps` menu bar app and `install-app.py` wraps it into
+`Headlines Dashboard.app`. It **imports `serve.py` rather than copying it**, and runs the server
+in a daemon thread in-process, so the endpoint, the source keys and the refresh lock stay in one
+place. Keep it that way.
+
+Three properties are load-bearing:
+
+- **The bundle wraps, it does not copy.** Its executable runs `app.py` from the repo, so edits
+  are live on the next launch and "Restart App" re-execs to pick them up. Don't make the
+  installer copy sources in; the whole update story depends on this.
+- **The interpreter is pinned at install time.** A Finder-launched app gets a minimal `PATH`
+  and would otherwise resolve `python3` to Apple's build, which may lack `rumps`. With no
+  Terminal, that failure is invisible — which is also why the launcher tees everything to
+  `~/Library/Logs/HeadlinesDashboard.log`.
+- **The installer calls `lsregister`.** A freshly built bundle is unknown to LaunchServices, so
+  `open` and Spotlight silently do nothing and Finder shows a stale icon. This cost an hour once.
+
+Worker threads never touch the menu. They leave a message behind a lock and a `rumps.Timer` on
+the main thread picks it up, because AppKit is not safe to drive from a background thread.
+
+`serve.summarise()` prefers stdout over stderr when reporting a run, since stderr is often just
+a deprecation warning and merging the streams surfaces a warning fragment instead of the result.
 
 The client script lives in the `SCRIPT` constant rather than inside `TEMPLATE`, so its braces
 don't need doubling for `str.format()`. Same for `REFRESH_ICON`. If you move JS or CSS into the
